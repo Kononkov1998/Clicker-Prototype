@@ -1,5 +1,4 @@
 using _Project.Scripts.Components;
-using _Project.Scripts.Data;
 using Leopotam.Ecs;
 
 namespace _Project.Scripts.Systems
@@ -14,12 +13,12 @@ namespace _Project.Scripts.Systems
             {
                 EcsEntity businessEntity = _businessFilter.GetEntity(businessIndex);
                 businessEntity.Del<LevelUpRequest>();
-                
+
                 ref Business business = ref businessEntity.Get<Business>();
                 int previousLevel = business.Level.Value;
                 business.Level.Value += 1;
-                business.Income.Value = GameConfig.CalculateIncome(business);
-                business.LevelUpCost.Value = GameConfig.CalculateLevelUpCost(business);
+                businessEntity.Get<UpdateIncomeRequest>();
+                businessEntity.Get<UpdateLevelUpCostRequest>();
 
                 if (previousLevel == 0)
                     businessEntity.Get<Active>();

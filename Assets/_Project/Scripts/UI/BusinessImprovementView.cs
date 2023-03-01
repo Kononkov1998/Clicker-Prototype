@@ -1,5 +1,7 @@
+using System;
 using _Project.Scripts.Components;
 using _Project.Scripts.Data;
+using Leopotam.Ecs;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -13,15 +15,23 @@ namespace _Project.Scripts.UI
         [SerializeField] private TextMeshProUGUI _income;
         [SerializeField] private TextMeshProUGUI _cost;
         [SerializeField] private Button _buy;
-        private Business _business;
-        private Wallet _wallet;
-        private BusinessImprovement _improvement;
 
-        public void Construct(Business business, BusinessImprovement improvement, Wallet wallet)
+        private EcsEntity _businessEntity;
+        private Business _business;
+        private RuntimeData _runtimeData;
+        private BusinessImprovement _improvement;
+        private IDisposable _moneySubscription;
+
+        private void OnDestroy() =>
+            _buy.onClick.RemoveListener(OnBuyClicked);
+
+        public void Construct(EcsEntity businessEntity, BusinessImprovement improvement, RuntimeData runtimeData)
         {
-            _business = business;
+            _businessEntity = businessEntity;
+            _business = _businessEntity.Get<Business>();
             _improvement = improvement;
-            _wallet = wallet;
+            _runtimeData = runtimeData;
+            _buy.onClick.AddListener(OnBuyClicked);
         }
 
         public void Init()
@@ -29,17 +39,36 @@ namespace _Project.Scripts.UI
             _name.text = _improvement.Name;
             _income.text = $"Доход: +{_improvement.MultiplierPercent}%";
             _cost.text = $"Цена: {_improvement.Cost}$";
-            _business.Improvements.ToObservable().Subscribe(UpdateCostTextOnPurchase);
-            _wallet.Money.Subscribe(UpdateBuyInteractibility);
+            if (_business.Improvements.Contains(_improvement.Id))
+            {
+                UpdateCostTextOnPurchase();
+            }
+            else
+            {
+                _business.Improvements.ObserveAdd().Subscribe(OnImprovementAdded);
+                _moneySubscription = _runtimeData.Money.Subscribe(UpdateBuyInteractibility);
+            }
         }
 
-        private void UpdateBuyInteractibility(float money) => 
+        private void OnBuyClicked() =>
+            _businessEntity.Get<BuyImprovementClickedEvent>().Id = _improvement.Id;
+
+        private void UpdateBuyInteractibility(float money) =>
             _buy.interactable = money >= _improvement.Cost;
 
-        private void UpdateCostTextOnPurchase(int improvementId)
+        private void OnImprovementAdded(CollectionAddEvent<int> improvementId)
         {
-            if (improvementId == _improvement.Id)
-                _cost.text = "Куплено";
+            if (improvementId.Value == _improvement.Id)
+            {
+                _moneySubscription.Dispose();
+                UpdateCostTextOnPurchase();
+            }
+        }
+
+        private void UpdateCostTextOnPurchase()
+        {
+            _cost.text = "Куплено";
+            _buy.interactable = false;
         }
     }
 }

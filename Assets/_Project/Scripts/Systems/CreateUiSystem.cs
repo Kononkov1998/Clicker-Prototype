@@ -8,56 +8,56 @@ namespace _Project.Scripts.Systems
 {
     public class CreateUiSystem : IEcsInitSystem
     {
-        private readonly GameUi _gameUi;
         private readonly StaticData _staticData;
+        private readonly RuntimeData _runtimeData;
 
         private EcsFilter<Business> _businessFilter;
-        private EcsFilter<Wallet> _walletFilter;
 
-        public CreateUiSystem(GameUi gameUi, StaticData staticData)
+        public CreateUiSystem(StaticData staticData, RuntimeData runtimeData)
         {
-            _gameUi = gameUi;
             _staticData = staticData;
+            _runtimeData = runtimeData;
         }
 
         public void Init()
         {
-            ref Wallet wallet = ref _walletFilter.Get1(0);
-            CreateMoneyBalanceView(wallet);
-            CreateBusinessViews(wallet);
+            GameUi gameUi = CreateGameUi();
+            CreateBusinessViews(gameUi);
         }
 
-        private void CreateMoneyBalanceView(Wallet wallet)
+        private GameUi CreateGameUi()
         {
-            _gameUi.MoneyMoneyBalanceView.Construct(wallet);
-            _gameUi.MoneyMoneyBalanceView.Init();
+            GameUi gameUi = Object.Instantiate(_staticData.GameUiPrefab);
+            gameUi.MoneyMoneyBalanceView.Construct(_runtimeData);
+            gameUi.MoneyMoneyBalanceView.Init();
+            return gameUi;
         }
 
-        private void CreateBusinessViews(Wallet wallet)
+        private void CreateBusinessViews(GameUi gameUi)
         {
             foreach (int businessIndex in _businessFilter)
             {
-                ref Business business = ref _businessFilter.Get1(businessIndex);
+                EcsEntity businessEntity = _businessFilter.GetEntity(businessIndex);
                 BusinessView businessView = Object.Instantiate(
                     _staticData.BusinessViewPrefab,
-                    _gameUi.BusinessesViewsLayout.transform
+                    gameUi.BusinessesViewsLayout.transform
                 );
-                businessView.Construct(business, wallet);
+                businessView.Construct(businessEntity, _runtimeData);
                 businessView.Init();
 
-                CreateImprovementsViews(business, businessView.Grid.transform, wallet);
+                CreateImprovementsViews(businessEntity, businessView.Grid.transform);
             }
         }
 
-        private void CreateImprovementsViews(Business business, Transform parent, Wallet wallet)
+        private void CreateImprovementsViews(EcsEntity businessEntity, Transform parent)
         {
-            foreach (BusinessImprovement improvement in business.Data.Improvements)
+            foreach (BusinessImprovement improvement in businessEntity.Get<Business>().Data.Improvements)
             {
                 BusinessImprovementView improvementView = Object.Instantiate(
                     _staticData.BusinessImprovementViewPrefab,
                     parent
                 );
-                improvementView.Construct(business, improvement, wallet);
+                improvementView.Construct(businessEntity, improvement, _runtimeData);
                 improvementView.Init();
             }
         }

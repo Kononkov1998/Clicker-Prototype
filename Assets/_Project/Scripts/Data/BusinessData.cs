@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace _Project.Scripts.Data
 {
@@ -12,6 +13,8 @@ namespace _Project.Scripts.Data
         public float BaseCost;
         public float BaseIncome;
         public List<BusinessImprovement> Improvements;
+
+        [field: SerializeField, HideInInspector]
         public int Id { get; set; }
 
         public BusinessImprovement GetBusinessImprovement(int id) =>

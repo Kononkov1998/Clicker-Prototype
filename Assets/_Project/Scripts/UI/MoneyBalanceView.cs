@@ -1,4 +1,4 @@
-using _Project.Scripts.Components;
+using _Project.Scripts.Data;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -8,15 +8,15 @@ namespace _Project.Scripts.UI
     public class MoneyBalanceView : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _balance;
-        private Wallet _wallet;
+        private RuntimeData _runtimeData;
 
-        public void Construct(Wallet wallet) => 
-            _wallet = wallet;
+        public void Construct(RuntimeData runtimeData) => 
+            _runtimeData = runtimeData;
 
         public void Init() => 
-            _wallet.Money.Subscribe(UpdateBalanceText);
+            _runtimeData.Money.Subscribe(UpdateBalanceText);
 
         private void UpdateBalanceText(float money) =>
-            _balance.text = $"Balance: {money}$";
+            _balance.text = $"Balance: {Mathf.Floor(money)}$";
     }
 }

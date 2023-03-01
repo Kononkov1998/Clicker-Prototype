@@ -1,37 +1,46 @@
 using System.Collections.Generic;
 using _Project.Scripts.Components;
 using _Project.Scripts.Data;
+using _Project.Scripts.Services.SaveLoad;
 using Leopotam.Ecs;
-using Newtonsoft.Json;
-using UnityEngine;
 
 namespace _Project.Scripts.Systems
 {
     public class SaveSystem : IEcsRunSystem
     {
-        private EcsFilter<Wallet> _walletFilter;
+        private readonly ISaveLoadService _saveLoad;
+        private readonly RuntimeData _runtimeData;
+
         private EcsFilter<Business> _businessFilter;
-        private EcsFilter<SaveRequest> _saveRequestFilter;
+        private EcsFilter<SaveEvent> _saveEventFilter;
+
+        public SaveSystem(ISaveLoadService saveLoad, RuntimeData runtimeData)
+        {
+            _saveLoad = saveLoad;
+            _runtimeData = runtimeData;
+        }
 
         public void Run()
         {
-            foreach (int saveRequestIndex in _saveRequestFilter)
-            {
-                EcsEntity entity = _saveRequestFilter.GetEntity(saveRequestIndex);
-                entity.Del<SaveRequest>();
+            if (!_saveEventFilter.IsEmpty())
                 Save();
-            }
         }
 
         private void Save()
         {
-            var businesses = new List<Business>();
+            var businesses = new Dictionary<int, Business>();
             foreach (int businessIndex in _businessFilter)
-                businesses.Add(_businessFilter.Get1(businessIndex));
+            {
+                ref Business business = ref _businessFilter.Get1(businessIndex);
+                businesses.Add(business.Id, business);
+            }
 
-            var data = new PersistentData(_walletFilter.Get1(0), businesses);
-            string json = JsonConvert.SerializeObject(data);
-            PlayerPrefs.SetString("Progress", json);
+            var data = new PersistentData
+            {
+                Money = _runtimeData.Money.Value,
+                Businesses = businesses
+            };
+            _saveLoad.Save(data);
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using _Project.Scripts.Data;
 using UniRx;
 
@@ -6,11 +6,12 @@ namespace _Project.Scripts.Components
 {
     public struct Business
     {
-        public BusinessData Data;
+        [NonSerialized] public BusinessData Data;
+        public int Id;
         public ReactiveProperty<int> Level;
         public ReactiveProperty<float> LevelUpCost;
         public ReactiveProperty<float> Income;
         public ReactiveProperty<float> IncomeProgress;
-        public List<int> Improvements;
+        public ReactiveCollection<int> Improvements;
     }
 }

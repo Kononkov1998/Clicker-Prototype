@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce591b886805497a812afa5109d28dfc, type: 3}
   m_Name: StaticData
   m_EditorClassIdentifier: 
+  SaveInterval: 60
+  GameUiPrefab: {fileID: 2834692355295415869, guid: 45db528e714c3b64dab90dfe5ef174b8, type: 3}
   BusinessViewPrefab: {fileID: 8434302682252237101, guid: 63be602de237a5d419aeb3799e7dd9fc, type: 3}
   BusinessImprovementViewPrefab: {fileID: 8785189728700988540, guid: ce501901ab4094f4d96f5a99ddc1c70f, type: 3}

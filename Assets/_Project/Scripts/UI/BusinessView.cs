@@ -1,4 +1,6 @@
 using _Project.Scripts.Components;
+using _Project.Scripts.Data;
+using Leopotam.Ecs;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -16,15 +18,21 @@ namespace _Project.Scripts.UI
         [SerializeField] private Image _fill;
         [SerializeField] private GridLayoutGroup _grid;
 
+        private EcsEntity _businessEntity;
         private Business _business;
-        private Wallet _wallet;
+        private RuntimeData _runtimeData;
 
         public GridLayoutGroup Grid => _grid;
 
-        public void Construct(Business business, Wallet wallet)
+        private void OnDestroy() => 
+            _levelUp.onClick.RemoveListener(OnLevelUpClicked);
+
+        public void Construct(EcsEntity businessEntity, RuntimeData runtimeData)
         {
-            _business = business;
-            _wallet = wallet;
+            _businessEntity = businessEntity;
+            _business = _businessEntity.Get<Business>();
+            _runtimeData = runtimeData;
+            _levelUp.onClick.AddListener(OnLevelUpClicked);
         }
 
         public void Init()
@@ -33,15 +41,19 @@ namespace _Project.Scripts.UI
             _business.Level.Subscribe(UpdateLevelText);
             _business.Income.Subscribe(UpdateIncomeText);
             _business.LevelUpCost.Subscribe(UpdateCostText);
+            _business.LevelUpCost.Subscribe(UpdateLevelUpInteractability);
             _business.IncomeProgress.Subscribe(UpdateIncomeProgress);
-            _wallet.Money.Subscribe(UpdateLevelUpInteractability);
+            _runtimeData.Money.Subscribe(UpdateLevelUpInteractability);
         }
+
+        private void OnLevelUpClicked() => 
+            _businessEntity.Get<LevelUpClickedEvent>();
 
         private void UpdateIncomeProgress(float incomeProgress) => 
             _fill.fillAmount = incomeProgress / _business.Data.IncomeDelay;
 
-        private void UpdateLevelUpInteractability(float money) =>
-            _levelUp.interactable = money >= _business.LevelUpCost.Value;
+        private void UpdateLevelUpInteractability(float _) => 
+            _levelUp.interactable = _runtimeData.Money.Value >= _business.LevelUpCost.Value;
 
         private void UpdateCostText(float cost) =>
             _levelUpCost.text = $"Цена: {cost}$";
@@ -50,6 +62,6 @@ namespace _Project.Scripts.UI
             _level.text = $"{level}";
 
         private void UpdateIncomeText(float income) =>
-            _income.text = $"{income}";
+            _income.text = $"{income}$";
     }
 }
