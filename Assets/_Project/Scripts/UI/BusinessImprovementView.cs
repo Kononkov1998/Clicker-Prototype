@@ -11,6 +11,10 @@ namespace _Project.Scripts.UI
 {
     public class BusinessImprovementView : MonoBehaviour
     {
+        private const string IncomeTextTemplate = "Доход: +{0}%";
+        private const string CostTextTemplate = "Цена: {0}$";
+        private const string BoughtText = "Куплено";
+        
         [SerializeField] private TextMeshProUGUI _name;
         [SerializeField] private TextMeshProUGUI _income;
         [SerializeField] private TextMeshProUGUI _cost;
@@ -37,8 +41,8 @@ namespace _Project.Scripts.UI
         public void Init()
         {
             _name.text = _improvement.Name;
-            _income.text = $"Доход: +{_improvement.MultiplierPercent}%";
-            _cost.text = $"Цена: {_improvement.Cost}$";
+            _income.text = string.Format(IncomeTextTemplate, _improvement.MultiplierPercent);
+            _cost.text = string.Format(CostTextTemplate, _improvement.Cost);
             if (_business.Improvements.Contains(_improvement.Id))
             {
                 UpdateCostTextOnPurchase();
@@ -67,7 +71,7 @@ namespace _Project.Scripts.UI
 
         private void UpdateCostTextOnPurchase()
         {
-            _cost.text = "Куплено";
+            _cost.text = BoughtText;
             _buy.interactable = false;
         }
     }

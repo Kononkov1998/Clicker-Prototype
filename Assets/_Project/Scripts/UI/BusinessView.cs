@@ -10,6 +10,9 @@ namespace _Project.Scripts.UI
 {
     public class BusinessView : MonoBehaviour
     {
+        private const string PriceTextTemplate = "Цена: {0}$";
+        private const string IncomeTextTemplate = "{0}$";
+
         [SerializeField] private TextMeshProUGUI _name;
         [SerializeField] private TextMeshProUGUI _level;
         [SerializeField] private TextMeshProUGUI _income;
@@ -56,12 +59,12 @@ namespace _Project.Scripts.UI
             _levelUp.interactable = _runtimeData.Money.Value >= _business.LevelUpCost.Value;
 
         private void UpdateCostText(float cost) =>
-            _levelUpCost.text = $"Цена: {cost}$";
+            _levelUpCost.text = string.Format(PriceTextTemplate, cost);
 
         private void UpdateLevelText(int level) =>
-            _level.text = $"{level}";
+            _level.text = level.ToString();
 
         private void UpdateIncomeText(float income) =>
-            _income.text = $"{income}$";
+            _income.text = string.Format(IncomeTextTemplate, income);
     }
 }
